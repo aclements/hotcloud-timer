@@ -32,6 +32,14 @@ $(document).ready(function() {
             start();
     });
 
+    $("#pause").click(function() {
+        if (running) {
+            stop();
+        } else {
+            start();
+        }
+    });
+
     $("#reset-talk").click(function() {
         reset(15*60, true);
         start();
@@ -121,6 +129,8 @@ function start() {
     if (running)
         return;
 
+    $("#pause").text("Pause").addClass("btn-info");
+
     // Switch from timerValue to zeroTime.
     zeroTime = Date.now() / 1000 + timerValue;
     running = true;
@@ -137,6 +147,8 @@ function start() {
 function stop() {
     if (!running)
         return;
+
+    $("#pause").text("Resume").removeClass("btn-info");
 
     clearInterval(timerInterval);
 
