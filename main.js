@@ -30,9 +30,11 @@ $(document).ready(function() {
 
     $("#reset-talk").click(function() {
         reset(15*60, true);
+        start();
     });
     $("#reset-discuss").click(function() {
         reset(8*60, false);
+        start();
     });
     $("#test-ding").click(function() {
         ding.play();
