@@ -19,13 +19,17 @@ $(document).ready(function() {
 
     var barDiv = $("#bar");
     barDiv.click(function(ev) {
+        var wasRunning = running;
+        if (running)
+            stop();
         // XXX Ugh, what 16?
         var relX = ev.pageX - $(this).parent().offset().left - 16;
         var pos = Math.min(Math.max(relX / barDiv.width(), 0), 1);
-        console.log(relX, pos);
-        timerValue = Math.floor(startValue * (1 - pos));
+        timerValue = Math.floor(initSecs * (1 - pos));
         lastWarning = timerValue;
         update();
+        if (wasRunning)
+            start();
     });
 
     $("#reset-talk").click(function() {
@@ -43,14 +47,15 @@ $(document).ready(function() {
 });
 
 var timerInterval;
-var timerValue, startValue;
+var timerValue, initSecs;
+var zeroTime;
 var warningValues = [], lastWarning = 0;
 
 function reset(sec, warnings) {
     if (running)
         stop();
+    initSecs = sec;
     timerValue = sec;
-    startValue = sec;
     lastWarning = sec;
 
     if (warnings) {
@@ -65,31 +70,38 @@ function reset(sec, warnings) {
 }
 
 function update() {
-    var text = Math.floor(Math.abs(timerValue) / 60) + ":";
-    if (timerValue < 0)
+    var val;
+    if (running)
+        val = zeroTime - (Date.now() / 1000);
+    else
+        val = timerValue;
+    val = Math.round(val);
+
+    var text = Math.floor(Math.abs(val) / 60) + ":";
+    if (val < 0)
         text = "-" + text;
-    var secs = Math.abs(timerValue) % 60;
+    var secs = Math.abs(val) % 60;
     if (secs < 10)
         text += "0";
     text += secs;
     timerDiv.text(text);
 
-    if (timerValue <= 0)
+    if (val <= 0)
         progressDiv.css("width", "100%");
-    else if (timerValue >= startValue)
+    else if (val >= initSecs)
         progressDiv.css("width", "0%");
     else
-        progressDiv.css("width", 100*(1 - timerValue / startValue) + "%");
+        progressDiv.css("width", 100*(1 - val / initSecs) + "%");
 
     var warning = false;
     for (var i = 0; i < warningValues.length; i++) {
         var w = warningValues[i];
-        if (lastWarning > w && w >= timerValue) {
+        if (lastWarning > w && w >= val) {
             warning = true;
             break
         }
     }
-    lastWarning = timerValue;
+    lastWarning = val;
     if (warning) {
         ding.play();
         var count = 8;
@@ -106,14 +118,30 @@ function update() {
 }
 
 function start() {
-    timerInterval = window.setInterval(function() {
-        timerValue--;
-        update();
-    }, 1000);
+    if (running)
+        return;
+
+    // Switch from timerValue to zeroTime.
+    zeroTime = Date.now() / 1000 + timerValue;
     running = true;
+
+    // TODO: Use a computed time out instead.
+    timerInterval = window.setInterval(function() {
+        if (window.requestAnimationFrame)
+            window.requestAnimationFrame(update);
+        else
+            update();
+    }, 100);
 }
 
 function stop() {
+    if (!running)
+        return;
+
     clearInterval(timerInterval);
+
+    // Switch from zeroTime to timerValue.
     running = false;
+    timerValue = zeroTime - Date.now() / 1000;
+    update();
 }
