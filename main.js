@@ -39,6 +39,7 @@ $(document).ready(function() {
     $("#test-ding").click(function() {
         ding.play();
     });
+    ding.load();
 });
 
 var timerInterval;
