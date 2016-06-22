@@ -25,20 +25,28 @@
   -ms-user-select: none;
   user-select: none;
 }
+
+.time-warning.warning-marker {
+  position: absolute;
+  height: 100%;
+  top: 0px;
+  width: .25em;
+  background: #f0ad4e;
+}
+
+.time-warning.warning-label {
+  position: absolute;
+  top: 100%;
+  font-size: 200%;
+}
     </style>
   </head>
   <body>
     <div class="container" style="max-width: 50em">
-      <p class="text-center noselect" style="font-size:800%; cursor:pointer" id="timer">15:00</p>
+      <p class="text-center noselect" style="font-size:800%; cursor:pointer" id="timer">&nbsp;</p>
 
       <div style="width:100%; height: 2em; margin-bottom:3em; background: #eee; position:relative; cursor:pointer" id="bar">
         <div style="height:100%; position:absolute; top:0px; left:0px; width:0%; background:#5bc0de" id="progress"></div>
-
-        <div style="height:100%; position:absolute; top:0px; left:66.6%; width:.25em; background:#5cb85c" class="time-warning"></div>
-        <div style="top:100%; position:absolute; left:66.6%; width:10em; margin-left:-5em; text-align:center; font-size: 200%" class="time-warning">5:00</div>
-
-        <div style="height:100%; position:absolute; top:0px; left:93.3%; width:.25em; background:#f0ad4e" class="time-warning"></div>
-        <div style="top:100%; position:absolute; left:93.3%; margin-left:-1em; font-size: 200%" class="time-warning">1:00</div>
 
         <div style="height:100%; position:absolute; top:0px; right:0; width:.25em; background:#d9534f"></div>
       </div>

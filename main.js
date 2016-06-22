@@ -1,11 +1,12 @@
 "use strict";
 
-var timerDiv, progressDiv;
+var timerDiv, progressDiv, barDiv;
 var ding = new Audio("ding.mp3");
 
 $(document).ready(function() {
     timerDiv = $("#timer");
     progressDiv = $("#progress");
+    barDiv = $("#bar");
 
     function toggle() {
         if (running) {
@@ -15,11 +16,10 @@ $(document).ready(function() {
         }
     }
 
-    reset(15*60*1000, true);
+    reset(15*60*1000, [5*60*1000, 1*60*1000]);
     timerDiv.click(toggle);
     $("#pause").click(toggle);
 
-    var barDiv = $("#bar");
     barDiv.click(function(ev) {
         var wasRunning = running;
         if (running)
@@ -35,11 +35,11 @@ $(document).ready(function() {
     });
 
     $("#reset-talk").click(function() {
-        reset(15*60*1000, true);
+        reset(15*60*1000, [5*60*1000, 1*60*1000]);
         start();
     });
     $("#reset-discuss").click(function() {
-        reset(8*60*1000, false);
+        reset(8*60*1000, []);
         start();
     });
     $("#test-ding").click(function() {
@@ -65,12 +65,20 @@ function reset(ms, warnings) {
     timerValue = ms;
     lastWarning = ms;
 
-    if (warnings) {
-        $(".time-warning").show();
-        warningValues = [5*60*1000, 1*60*1000, 0];
-    } else {
-        $(".time-warning").hide();
-        warningValues = [0];
+    // Create warning marks.
+    $(".time-warning").remove();
+    for (var i = 0; i < warnings.length; i++) {
+        var t = warnings[i];
+
+        $('<div class="time-warning warning-marker">'
+        ).css("left", 100 * (1 - t / ms) + "%"
+        ).appendTo(barDiv);
+
+        var labelDiv = $('<div class="time-warning warning-label">'
+        ).css("left", 100 * (1 - t / ms) + "%"
+        ).text(msToString(t)
+        ).appendTo(barDiv);
+        labelDiv.css("margin-left", -labelDiv.width() / 2 + "px");
     }
 
     update();
