@@ -1,21 +1,23 @@
 "use strict";
 
 var timerDiv, progressDiv;
-var running = false;
 var ding = new Audio("ding.mp3");
 
 $(document).ready(function() {
     timerDiv = $("#timer");
     progressDiv = $("#progress");
 
-    reset(15*60, true);
-    timerDiv.click(function() {
+    function toggle() {
         if (running) {
             stop();
         } else {
             start();
         }
-    });
+    }
+
+    reset(15*60*1000, true);
+    timerDiv.click(toggle);
+    $("#pause").click(toggle);
 
     var barDiv = $("#bar");
     barDiv.click(function(ev) {
@@ -25,27 +27,19 @@ $(document).ready(function() {
         // XXX Ugh, what 16?
         var relX = ev.pageX - $(this).parent().offset().left - 16;
         var pos = Math.min(Math.max(relX / barDiv.width(), 0), 1);
-        timerValue = Math.floor(initSecs * (1 - pos));
+        timerValue = Math.floor(initTime * (1 - pos));
         lastWarning = timerValue;
         update();
         if (wasRunning)
             start();
     });
 
-    $("#pause").click(function() {
-        if (running) {
-            stop();
-        } else {
-            start();
-        }
-    });
-
     $("#reset-talk").click(function() {
-        reset(15*60, true);
+        reset(15*60*1000, true);
         start();
     });
     $("#reset-discuss").click(function() {
-        reset(8*60, false);
+        reset(8*60*1000, false);
         start();
     });
     $("#test-ding").click(function() {
@@ -54,21 +48,26 @@ $(document).ready(function() {
     ding.load();
 });
 
-var timerInterval;
-var timerValue, initSecs;
+// If running is true, zeroTime is the millisecond time at which the
+// timer should reach zero. If running is false, timerValue is the
+// current timer value in milliseconds remaining.
+var running = false;
+var timerValue, initTime;
 var zeroTime;
 var warningValues = [], lastWarning = 0;
 
-function reset(sec, warnings) {
+var timerInterval;
+
+function reset(ms, warnings) {
     if (running)
         stop();
-    initSecs = sec;
-    timerValue = sec;
-    lastWarning = sec;
+    initTime = ms;
+    timerValue = ms;
+    lastWarning = ms;
 
     if (warnings) {
         $(".time-warning").show();
-        warningValues = [5*60, 1*60, 0];
+        warningValues = [5*60*1000, 1*60*1000, 0];
     } else {
         $(".time-warning").hide();
         warningValues = [0];
@@ -77,29 +76,33 @@ function reset(sec, warnings) {
     update();
 }
 
+function msToString(ms) {
+    var secs = Math.floor(ms / 1000);
+    var text = Math.floor(Math.abs(secs) / 60) + ":";
+    if (secs < 0)
+        text = "-" + text;
+    var left = Math.abs(secs) % 60;
+    if (left < 10)
+        text += "0";
+    text += left;
+    return text;
+}
+
 function update() {
     var val;
     if (running)
-        val = zeroTime - (Date.now() / 1000);
+        val = zeroTime - Date.now();
     else
         val = timerValue;
-    val = Math.round(val);
 
-    var text = Math.floor(Math.abs(val) / 60) + ":";
-    if (val < 0)
-        text = "-" + text;
-    var secs = Math.abs(val) % 60;
-    if (secs < 10)
-        text += "0";
-    text += secs;
-    timerDiv.text(text);
+    timerDiv.text(msToString(val));
 
     if (val <= 0)
         progressDiv.css("width", "100%");
-    else if (val >= initSecs)
+    else if (val >= initTime)
         progressDiv.css("width", "0%");
     else
-        progressDiv.css("width", 100*(1 - val / initSecs) + "%");
+        progressDiv.css("width", 100*(1 - val / initTime) + "%");
 
     var warning = false;
     for (var i = 0; i < warningValues.length; i++) {
@@ -132,7 +135,7 @@ function start() {
     $("#pause").text("Pause").addClass("btn-info");
 
     // Switch from timerValue to zeroTime.
-    zeroTime = Date.now() / 1000 + timerValue;
+    zeroTime = Date.now() + timerValue;
     running = true;
 
     // TODO: Use a computed time out instead.
@@ -154,6 +157,6 @@ function stop() {
 
     // Switch from zeroTime to timerValue.
     running = false;
-    timerValue = zeroTime - Date.now() / 1000;
+    timerValue = zeroTime - Date.now();
     update();
 }
