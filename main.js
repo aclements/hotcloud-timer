@@ -1,5 +1,8 @@
 "use strict";
 
+var talkDescriptor = {time: 15*60*1000, warnings: [5*60*1000, 1*60*1000]};
+var discussDescriptor = {time: 8*60*1000, warnings: []};
+
 var timerDiv, progressDiv, barDiv;
 var ding = new Audio("ding.mp3");
 
@@ -16,7 +19,7 @@ $(document).ready(function() {
         }
     }
 
-    reset(15*60*1000, [5*60*1000, 1*60*1000]);
+    reset(talkDescriptor);
     timerDiv.click(toggle);
     $("#pause").click(toggle);
 
@@ -35,11 +38,11 @@ $(document).ready(function() {
     });
 
     $("#reset-talk").click(function() {
-        reset(15*60*1000, [5*60*1000, 1*60*1000]);
+        reset(talkDescriptor);
         start();
     });
     $("#reset-discuss").click(function() {
-        reset(8*60*1000, []);
+        reset(discussDescriptor);
         start();
     });
     $("#test-ding").click(function() {
@@ -58,24 +61,27 @@ var warningValues = [], lastWarning = 0;
 
 var timerInterval;
 
-function reset(ms, warnings) {
+// reset resets the timer to desc.time milliseconds remaining with
+// warnings at desc.warnings. If the timer is running, it will be
+// stopped.
+function reset(desc) {
     if (running)
         stop();
-    initTime = ms;
-    timerValue = ms;
-    lastWarning = ms;
+    initTime = desc.time;
+    timerValue = desc.time;
+    lastWarning = desc.time;
 
     // Create warning marks.
     $(".time-warning").remove();
-    for (var i = 0; i < warnings.length; i++) {
-        var t = warnings[i];
+    for (var i = 0; i < desc.warnings.length; i++) {
+        var t = desc.warnings[i];
 
         $('<div class="time-warning warning-marker">'
-        ).css("left", 100 * (1 - t / ms) + "%"
+        ).css("left", 100 * (1 - t / desc.time) + "%"
         ).appendTo(barDiv);
 
         var labelDiv = $('<div class="time-warning warning-label">'
-        ).css("left", 100 * (1 - t / ms) + "%"
+        ).css("left", 100 * (1 - t / desc.time) + "%"
         ).text(msToString(t)
         ).appendTo(barDiv);
         labelDiv.css("margin-left", -labelDiv.width() / 2 + "px");
