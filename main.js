@@ -73,11 +73,13 @@ function reset(desc) {
 
     // Create warning marks.
     $(".time-warning").remove();
+    var color = "#5cb85c";
     for (var i = 0; i < desc.warnings.length; i++) {
         var t = desc.warnings[i];
 
         $('<div class="time-warning warning-marker">'
         ).css("left", 100 * (1 - t / desc.time) + "%"
+        ).css("background", color
         ).appendTo(barDiv);
 
         var labelDiv = $('<div class="time-warning warning-label">'
@@ -85,6 +87,8 @@ function reset(desc) {
         ).text(msToString(t)
         ).appendTo(barDiv);
         labelDiv.css("margin-left", -labelDiv.width() / 2 + "px");
+
+        color = "#f0ad4e";
     }
 
     update();
